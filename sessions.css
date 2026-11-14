@@ -1,0 +1,26 @@
+/* Tabla recomendada y registro de sesiones */
+.board-box{margin-top:12px;border-left:3px solid var(--sea);background:var(--surface-2);border-radius:0 8px 8px 0;padding:8px 11px;display:grid;gap:4px}
+.board-title{font-size:12.5px;font-weight:750;color:var(--ink-2)}
+.board-rec,.board-list{font-size:14px;margin:0}
+.board-list{padding-left:0;list-style:none;display:grid;gap:2px}
+.board-line{display:grid;gap:8px;justify-items:start;margin-top:4px}
+.board-line .board-box{margin-top:0;justify-self:stretch}
+.surf-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding:6px 0}
+@media (min-width:560px){.surf-row{grid-template-columns:110px minmax(0,1fr);gap:6px 10px}.surf-row .set-dayname{padding-top:20px}}
+.surf-fields{display:flex;flex-wrap:wrap;gap:8px}
+.surf-field{display:grid;gap:3px;font-size:12.5px;color:var(--ink-2);min-width:0}
+.surf-field input,.surf-field select,.surf-field textarea{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--surface-2);color:var(--ink);font:inherit;font-size:15px;min-height:38px;min-width:0}
+.surf-fields .surf-field input{width:90px}
+.surf-field textarea{resize:vertical;width:100%}
+.surf-field input[type=text]{width:100%}
+.ses-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.ses-grid{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.ses-grid .surf-field:last-child{grid-column:1 / -1}}
+.ses-grid input,.ses-grid select{width:100%}
+.rate-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rate-btn{display:grid;justify-items:center;gap:1px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 2px;cursor:pointer;min-height:48px}
+.rate-btn b{font-size:17px;font-weight:780}
+.rate-btn small{font-size:10.5px;color:var(--ink-2);font-stretch:88%}
+.rate-btn[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink);background:var(--good-wash)}
+.ses-item{display:grid;gap:4px;border:1px solid var(--grid);border-radius:10px;padding:9px 11px;background:var(--surface)}
+.ses-rate{color:var(--warn);letter-spacing:1px;font-size:14px}
+.nw{white-space:nowrap}
