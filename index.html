@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
 <link rel="stylesheet" href="styles.css?v=20261114">
+<link rel="stylesheet" href="ideas.css?v=20261114">
 </head>
 <body>
 <div class="wrap">
@@ -30,6 +31,7 @@
       <h1><span class="b1">Hendaye</span><span class="b2">Surf Radar</span></h1>
     </div>
     <div class="actions">
+      <button class="icon-btn" id="btnIdeas" type="button" aria-label="Sugerencias de mejora"><svg viewBox="0 0 24 24"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></button>
       <button class="icon-btn" id="btnRefresh" type="button" aria-label="Actualizar datos"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></button>
       <button class="icon-btn" id="btnTheme" type="button" aria-label="Cambiar tema"></button>
       <button class="icon-btn" id="btnSettings" type="button" aria-label="Ajustes"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
@@ -50,6 +52,7 @@
     </div>
     <div id="days" class="days" role="tablist" aria-label="Próximos 7 días"></div>
     <div id="detail" class="detail" role="tabpanel" aria-live="polite"></div>
+    <section id="ideas" class="ideas" aria-labelledby="ideasTitle"></section>
   </main>
   <footer class="foot">
     <p>Datos de Open-Meteo (oleaje, viento, sol y nivel del mar). Son estimaciones automáticas: antes de entrar, mira la cámara y el agua.</p>
@@ -81,5 +84,6 @@
 <script src="js/app-1.js?v=20261114"></script>
 <script src="js/app-2.js?v=20261114"></script>
 <script src="js/app-3.js?v=20261114"></script>
+<script src="js/app-4.js?v=20261114"></script>
 </body>
 </html>
