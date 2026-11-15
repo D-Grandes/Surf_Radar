@@ -30,7 +30,7 @@ async function loadIdeas() {
   if (ideas.loading) return;
   ideas.loading = true; renderIdeas();
   try {
-    const r = await fetch(`${API}/issues?state=all&per_page=50&sort=created&direction=desc`, { headers: ghHeaders() });
+    const r = await fetch(`${API}/issues?state=all&per_page=50&sort=created&direction=desc`, { headers: ghHeaders(), cache: 'no-cache' }); // sin la copia de 60 s del navegador
     if (r.status === 401 && ideas.token) throw new Error('la llave de GitHub no es válida o ha caducado');
     if (!r.ok) throw new Error(r.status === 403 || r.status === 429 ? 'GitHub limita las consultas seguidas; prueba dentro de un rato' : `HTTP ${r.status}`);
     const data = await r.json();
