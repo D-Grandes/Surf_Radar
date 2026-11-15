@@ -24,3 +24,14 @@
 .ses-item{display:grid;gap:4px;border:1px solid var(--grid);border-radius:10px;padding:9px 11px;background:var(--surface)}
 .ses-rate{color:var(--warn);letter-spacing:1px;font-size:14px}
 .nw{white-space:nowrap}
+.ses-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.btn.small.del{color:var(--bad)}
+.ses-item.editing{border-color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.ses-edit{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px;background:var(--warn-wash);border-radius:8px;padding:8px 11px;font-size:13.5px}
+.surf-field input:disabled,.surf-field select:disabled{opacity:.6}
+.confirm-bg{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(6,16,24,.55)}
+.confirm{width:min(400px,100%);display:grid;gap:10px;background:var(--surface);color:var(--ink);border-radius:16px;padding:18px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.confirm h2{font-size:18px;font-weight:780;font-stretch:108%}
+.confirm p{font-size:14.5px;color:var(--ink-2)}
+.confirm-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:4px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--on-bad)}
