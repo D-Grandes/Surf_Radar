@@ -153,7 +153,7 @@ async function loadSessions() {
   if (!ideas.token || ses.loading) { renderSessions(); return; }
   ses.loading = true; renderSessions();
   try {
-    const r = await fetch(`${DATA_API}/issues?state=all&per_page=30&sort=created&direction=desc`, { headers: ghHeaders() });
+    const r = await fetch(`${DATA_API}/issues?state=all&per_page=30&sort=created&direction=desc`, { headers: ghHeaders(), cache: 'no-cache' }); // sin la copia de 60 s del navegador
     if (r.status === 404) throw new Error('No encuentro el repositorio Surf_Radar_datos o la llave no tiene acceso a él.');
     if (r.status === 401) throw new Error('La llave de GitHub no es válida o ha caducado.');
     if (!r.ok) throw new Error(`GitHub respondió con un error (HTTP ${r.status}).`);
