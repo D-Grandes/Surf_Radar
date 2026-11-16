@@ -241,7 +241,10 @@ function editSession(s) {
   ses.editing = s.n;
   ses.form = { who: d.surfista, date: d.fecha, time: d.entrada, dur: d.duracion_min || 90, board: d.tabla_usada || '', rating: d.valoracion || 0, note: d.comentario || '' };
   ses.msg = null; renderSessions();
-  $('#sessions').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Deja el cursor al final del comentario. Al hacerlo dentro del mismo toque, el iPhone abre el teclado
+  const t = $('#sesNote');
+  if (t) { t.focus({ preventScroll: true }); try { t.setSelectionRange(t.value.length, t.value.length); } catch (e) { /* sin selección */ } t.scrollIntoView({ block: 'center' }); }
+  else $('#sessions').scrollIntoView({ block: 'start' });
 }
 function cancelEdit() { const w = ses.form.who; ses.editing = null; ses.form = newForm(); ses.form.who = w; ses.msg = null; renderSessions(); }
 // «Eliminar» cierra la incidencia como descartada: deja de verse y de contar, pero se puede recuperar en GitHub
@@ -267,7 +270,7 @@ function sessionItem(s) {
       el('span', { class: `who-tag ${a ? a.cls : 'who-x'}` }, el('i', { class: 'who-dot', 'aria-hidden': 'true' }), d.surfista),
       el('span', { class: 'idea-title', text: `${dayShortRel(d.fecha, nowP())}, ${d.entrada}–${d.salida}` }),
       el('span', { class: 'ses-rate', 'aria-label': `Valoración ${d.valoracion} de 5`, text: '★'.repeat(d.valoracion) + '☆'.repeat(5 - d.valoracion) })),
-    el('p', { class: 'idea-body', text: [d.tabla_usada ? `Tabla: ${d.tabla_usada}` : null, c ? `${f1(c.boya_m)} m en boya, ${f0(c.periodo_s)} s, viento ${c.viento_tipo}` : null, d.comentario].filter(Boolean).join('. ') }),
+    el('p', { class: 'idea-body ses-tap', title: 'Toca para editar', onclick: () => editSession(s), text: [d.tabla_usada ? `Tabla: ${d.tabla_usada}` : null, c ? `${f1(c.boya_m)} m en boya, ${f0(c.periodo_s)} s, viento ${c.viento_tipo}` : null, d.comentario].filter(Boolean).join('. ') }),
     el('div', { class: 'ses-actions' },
       el('button', { class: 'btn small ghost', type: 'button', onclick: () => editSession(s), text: ses.editing === s.n ? 'Editando…' : 'Editar', disabled: ses.editing === s.n }),
       el('button', { class: 'btn small ghost del', type: 'button', onclick: () => deleteSession(s), text: 'Eliminar' })));
