@@ -35,3 +35,7 @@
 .confirm p{font-size:14.5px;color:var(--ink-2)}
 .confirm-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:4px}
 .btn.danger{background:var(--bad);border-color:var(--bad);color:var(--on-bad)}
+.ses-list-wrap{display:grid;gap:10px}
+/* iPhone: con letra de menos de 16 px, Safari amplía la página al tocar un campo */
+.surf-field input,.surf-field select,.surf-field textarea,.idea-form textarea,.idea-token-row input{font-size:16px}
+.ideas button,.ideas input,.ideas select,.ideas textarea,.ideas label{touch-action:manipulation}

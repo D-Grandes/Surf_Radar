@@ -151,7 +151,7 @@ function parseSession(it) {
 }
 async function loadSessions() {
   if (!ideas.token || ses.loading) { renderSessions(); return; }
-  ses.loading = true; renderSessions();
+  ses.loading = true; renderSessionList();
   try {
     const r = await fetch(`${DATA_API}/issues?state=all&per_page=30&sort=created&direction=desc`, { headers: ghHeaders(), cache: 'no-cache' }); // sin la copia de 60 s del navegador
     if (r.status === 404) throw new Error('No encuentro el repositorio Surf_Radar_datos o la llave no tiene acceso a él.');
@@ -161,7 +161,7 @@ async function loadSessions() {
     ses.list = (Array.isArray(data) ? data : []).filter(i => !i.pull_request && i.state !== 'closed').map(parseSession); // las eliminadas se cierran
     ses.error = null; store.set(K_SESSIONS, ses.list);
   } catch (e) { ses.error = e; if (!ses.list) { const c = store.get(K_SESSIONS, null); if (Array.isArray(c)) ses.list = c; } }
-  ses.loading = false; renderSessions();
+  ses.loading = false; renderSessionList();
 }
 // Ventana de confirmación propia (evita guardar o borrar por un toque sin querer)
 function confirmBox(o) {
@@ -272,21 +272,49 @@ function sessionItem(s) {
       el('button', { class: 'btn small ghost', type: 'button', onclick: () => editSession(s), text: ses.editing === s.n ? 'Editando…' : 'Editar', disabled: ses.editing === s.n }),
       el('button', { class: 'btn small ghost del', type: 'button', onclick: () => deleteSession(s), text: 'Eliminar' })));
 }
+// Marca la opción elegida en un grupo de botones sin redibujar el formulario
+function markChecked(btn) { for (const b of btn.parentElement.querySelectorAll('[role=radio]')) b.setAttribute('aria-checked', b === btn ? 'true' : 'false'); }
+function boardHint(f) {
+  try {
+    const p = f.who ? SURFERS[f.who] : null, d = state.days.find(x => x.date === f.date), m = parseHM(f.time);
+    const x = d && m != null ? hourAt(d, Math.floor(m / 60) * 60) : null, r = x && p ? boardFor(x, p) : null;
+    return r ? `Recomendada: ${r.text}` : `Ej.: mid-length de 7'6", 52 L`;
+  } catch (e) { return ''; }
+}
+function refreshHint() { const b = $('#sesBoard'); if (b) b.placeholder = boardHint(ses.form); }
+function clearErrMsg() { if (ses.msg && ses.msg.err) { ses.msg = null; const mm = $('#sesMsg'); if (mm) mm.remove(); } }
+// La lista se redibuja por separado: así no se pierde lo que se está escribiendo en el formulario
+function sessionListNodes() {
+  const now = nowP(), list = el('div', { class: 'idea-lists' });
+  if (ses.list == null) list.append(el('p', { class: 'fine', text: ses.loading ? 'Cargando sesiones…' : 'Todavía no se han cargado las sesiones.' }));
+  else if (!ses.list.length) list.append(el('p', { class: 'fine', text: 'Todavía no hay sesiones registradas.' }));
+  else list.append(el('ul', { class: 'idea-list' }, ses.list.slice(0, 10).map(sessionItem)));
+  if (ses.error) list.append(el('p', { class: 'fine', text: `No se pudo consultar el registro: ${ses.error.message || ses.error}` }));
+  const year = (ses.list || []).filter(s => s.data && s.data.fecha && s.data.fecha.slice(0, 4) === now.date.slice(0, 4)).length;
+  return [el('div', { class: 'idea-head' }, el('h3', { text: ses.list && ses.list.length ? `Últimas sesiones (${year} este año)` : 'Últimas sesiones' }),
+    el('button', { class: 'link-btn', type: 'button', onclick: () => loadSessions(), disabled: ses.loading, text: ses.loading ? 'Cargando…' : 'Actualizar' })), list];
+}
+function renderSessionList() {
+  const host = $('#sesListWrap');
+  if (!host || !ideas.token) { renderSessions(); return; }
+  host.replaceChildren(...sessionListNodes());
+}
 function renderSessions() {
   let box = $('#sessions');
   if (!box) { box = el('section', { id: 'sessions', class: 'ideas sessions', 'aria-labelledby': 'sesTitle' }); $('#ideas').before(box); }
+  // Conserva el campo activo si el formulario se tiene que redibujar
+  const act = document.activeElement, actId = act && box.contains(act) ? act.id : null;
+  const sel = actId && typeof act.selectionStart === 'number' ? [act.selectionStart, act.selectionEnd] : null;
   const f = ses.form, now = nowP();
   const who = el('div', { class: 'idea-who', role: 'radiogroup', 'aria-labelledby': 'sesWho' }, el('span', { id: 'sesWho', text: '¿Quién ha surfeado?' }),
-    IDEA_AUTHORS.map(a => el('button', { type: 'button', class: `who-btn ${a.cls}`, role: 'radio', 'aria-checked': f.who === a.name ? 'true' : 'false', onclick: () => { f.who = a.name; if (ses.msg && ses.msg.err) ses.msg = null; renderSessions(); } },
+    IDEA_AUTHORS.map(a => el('button', { type: 'button', class: `who-btn ${a.cls}`, role: 'radio', 'aria-checked': f.who === a.name ? 'true' : 'false', onclick: e => { f.who = a.name; markChecked(e.currentTarget); clearErrMsg(); refreshHint(); } },
       el('i', { class: 'who-dot', 'aria-hidden': 'true' }), a.name)));
   const editing = ses.editing ? (ses.list || []).find(s => s.n === ses.editing && s.data) : null;
   if (ses.editing && !editing) ses.editing = null;
   const locked = !!editing && dayNum(now.date) - dayNum(editing.data.fecha) > 7; // ya no se pueden recalcular sus condiciones
   const minDate = locked ? editing.data.fecha : dateFromNum(dayNum(now.date) - 7);
   const durSel = el('select', { id: 'sesDur', disabled: locked, onchange: e => { f.dur = +e.target.value; } }, [30, 60, 90, 120, 150, 180, 240].concat([30, 60, 90, 120, 150, 180, 240].includes(f.dur) ? [] : [f.dur]).sort((a, b) => a - b).map(v => { const o = el('option', { value: v, text: v < 60 ? `${v} min` : `${Math.floor(v / 60)} h${v % 60 ? ' 30 min' : ''}` }); if (v === f.dur) o.selected = true; return o; }));
-  const p = f.who ? SURFERS[f.who] : null;
-  const hint = (() => { try { const d = state.days.find(x => x.date === f.date), m = parseHM(f.time); const x = d && m != null ? hourAt(d, Math.floor(m / 60) * 60) : null; const r = x && p ? boardFor(x, p) : null; return r ? `Recomendada: ${r.text}` : `Ej.: mid-length de 7'6", 52 L`; } catch (e) { return ''; } })();
-  const rate = el('div', { class: 'rate-row', role: 'radiogroup', 'aria-label': 'Valoración' }, RATING.map((t, i) => el('button', { type: 'button', class: 'rate-btn', role: 'radio', 'aria-checked': f.rating === i + 1 ? 'true' : 'false', title: t, onclick: () => { f.rating = i + 1; renderSessions(); } }, el('b', { text: String(i + 1) }), el('small', { text: t }))));
+  const rate = el('div', { class: 'rate-row', role: 'radiogroup', 'aria-label': 'Valoración' }, RATING.map((t, i) => el('button', { type: 'button', class: 'rate-btn', role: 'radio', 'aria-checked': f.rating === i + 1 ? 'true' : 'false', title: t, onclick: e => { f.rating = i + 1; markChecked(e.currentTarget); clearErrMsg(); } }, el('b', { text: String(i + 1) }), el('small', { text: t }))));
   const m = ses.msg;
   const form = !ideas.token
     ? el('div', { class: 'idea-msg' }, el('span', { text: 'Para registrar sesiones hace falta la llave de GitHub (la misma de las sugerencias) con acceso al repositorio privado Surf_Radar_datos. Guárdala en «Publicar sin salir de la app», en el apartado de sugerencias.' }))
@@ -294,32 +322,23 @@ function renderSessions() {
       editing ? el('div', { class: 'ses-edit' }, el('span', {}, 'Editando la sesión de ', el('b', { text: sesLabel(editing.data) })), el('button', { class: 'link-btn', type: 'button', onclick: cancelEdit, text: 'Cancelar edición' })) : null,
       who,
       el('div', { class: 'ses-grid' },
-        el('label', { class: 'surf-field' }, 'Día', el('input', { type: 'date', min: minDate, max: now.date, value: f.date, disabled: locked, onchange: e => { f.date = e.target.value; renderSessions(); } })),
-        el('label', { class: 'surf-field' }, 'Entrada', el('input', { type: 'time', step: 300, value: f.time, disabled: locked, onchange: e => { f.time = e.target.value; renderSessions(); } })),
+        el('label', { class: 'surf-field' }, 'Día', el('input', { id: 'sesDate', type: 'date', min: minDate, max: now.date, value: f.date, disabled: locked, onchange: e => { f.date = e.target.value; refreshHint(); } })),
+        el('label', { class: 'surf-field' }, 'Entrada', el('input', { id: 'sesTime', type: 'time', step: 300, value: f.time, disabled: locked, onchange: e => { f.time = e.target.value; refreshHint(); } })),
         el('label', { class: 'surf-field' }, 'Duración', durSel)),
       locked ? el('p', { class: 'fine', text: 'Es una sesión de hace más de 7 días: puedes cambiar quién, la tabla, la valoración y el comentario, pero no el día ni las horas.' }) : null,
-      el('label', { class: 'surf-field' }, 'Tabla usada', el('input', { type: 'text', maxlength: 80, value: f.board, placeholder: hint, oninput: e => { f.board = e.target.value; } })),
+      el('label', { class: 'surf-field' }, 'Tabla usada', el('input', { id: 'sesBoard', type: 'text', maxlength: 80, value: f.board, placeholder: boardHint(f), oninput: e => { f.board = e.target.value; } })),
       el('div', { class: 'surf-field' }, el('span', { text: 'Valoración' }), rate),
-      el('label', { class: 'surf-field' }, 'Comentario (opcional)', el('textarea', { rows: 2, maxlength: 1000, placeholder: 'Cómo estaba el agua, si la tabla iba bien…', oninput: e => { f.note = e.target.value; } }, )),
+      el('label', { class: 'surf-field' }, 'Comentario (opcional)', el('textarea', { id: 'sesNote', rows: 2, maxlength: 1000, placeholder: 'Cómo estaba el agua, si la tabla iba bien…', oninput: e => { f.note = e.target.value; } })),
       el('div', { class: 'idea-actions' }, el('button', { class: 'btn primary', type: 'button', onclick: saveSession, disabled: ses.sending, text: ses.sending ? 'Guardando…' : editing ? 'Guardar cambios' : 'Guardar sesión' })),
-      m ? el('div', { class: `idea-msg${m.err ? ' err' : m.ok ? ' ok' : ''}`, role: 'status' }, el('span', { text: m.text })) : null);
+      m ? el('div', { id: 'sesMsg', class: `idea-msg${m.err ? ' err' : m.ok ? ' ok' : ''}`, role: 'status' }, el('span', { text: m.text })) : null);
   const ta = form.querySelector('textarea'); if (ta) ta.value = f.note;
-  const list = el('div', { class: 'idea-lists' });
-  if (ideas.token) {
-    if (ses.list == null) list.append(el('p', { class: 'fine', text: ses.loading ? 'Cargando sesiones…' : 'Todavía no se han cargado las sesiones.' }));
-    else if (!ses.list.length) list.append(el('p', { class: 'fine', text: 'Todavía no hay sesiones registradas.' }));
-    else list.append(el('ul', { class: 'idea-list' }, ses.list.slice(0, 10).map(sessionItem)));
-    if (ses.error) list.append(el('p', { class: 'fine', text: `No se pudo consultar el registro: ${ses.error.message || ses.error}` }));
-  }
-  const year = (ses.list || []).filter(s => s.data && s.data.fecha && s.data.fecha.slice(0, 4) === now.date.slice(0, 4)).length;
   box.replaceChildren(...[
     el('h2', { id: 'sesTitle', text: 'Registro de sesiones' }),
     el('p', { class: 'fine', text: 'Apuntad cada baño: la app guarda las condiciones de esas horas para analizar a final de año qué os funciona y si conviene cambiar de tabla. Se guarda en un repositorio privado.' }),
     form,
-    ideas.token ? el('div', { class: 'idea-head' }, el('h3', { text: ses.list && ses.list.length ? `Últimas sesiones (${year} este año)` : 'Últimas sesiones' }),
-      el('button', { class: 'link-btn', type: 'button', onclick: () => loadSessions(), disabled: ses.loading, text: ses.loading ? 'Cargando…' : 'Actualizar' })) : null,
-    ideas.token ? list : null
+    ideas.token ? el('div', { id: 'sesListWrap', class: 'ses-list-wrap' }, ...sessionListNodes()) : null
   ].filter(Boolean));
+  if (actId) { const n = document.getElementById(actId); if (n) { n.focus({ preventScroll: true }); if (sel && typeof n.setSelectionRange === 'function') { try { n.setSelectionRange(sel[0], sel[1]); } catch (e) { /* sin selección */ } } } }
 }
 // La llave de las sugerencias también da acceso al registro
 const _saveToken = saveToken, _removeToken = removeToken;

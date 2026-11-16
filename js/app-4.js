@@ -28,7 +28,7 @@ function ideaParse(it) {
 }
 async function loadIdeas() {
   if (ideas.loading) return;
-  ideas.loading = true; renderIdeas();
+  ideas.loading = true; renderIdeaList();
   try {
     const r = await fetch(`${API}/issues?state=all&per_page=50&sort=created&direction=desc`, { headers: ghHeaders(), cache: 'no-cache' }); // sin la copia de 60 s del navegador
     if (r.status === 401 && ideas.token) throw new Error('la llave de GitHub no es válida o ha caducado');
@@ -40,7 +40,7 @@ async function loadIdeas() {
   } catch (e) {
     ideas.error = e;
   }
-  ideas.loading = false; renderIdeas();
+  ideas.loading = false; renderIdeaList();
 }
 function ideaBody(a, text) {
   const d = state.days[state.dayIdx];
@@ -123,22 +123,8 @@ function ideaItem(x) {
       el('span', { text: DATE_S.format(new Date(x.at)) }),
       el('a', { href: x.url, target: '_blank', rel: 'noopener noreferrer' }, x.comments ? `${x.comments} ${x.comments === 1 ? 'respuesta' : 'respuestas'}` : 'Responder en GitHub')));
 }
-function renderIdeas(focus) {
-  const box = $('#ideas'); if (!box) return;
-  const hadFocus = document.activeElement && document.activeElement.id === 'ideaText';
-  const ta = el('textarea', { id: 'ideaText', rows: '4', maxlength: '4000', placeholder: 'Qué cambiarías o añadirías a la app…', 'aria-label': 'Sugerencia', oninput: e => { ideas.draft = e.target.value; } });
-  ta.value = ideas.draft;
-  const who = el('div', { class: 'idea-who', role: 'radiogroup', 'aria-labelledby': 'ideaWho' }, el('span', { id: 'ideaWho', text: '¿Quién escribe?' }),
-    IDEA_AUTHORS.map(a => el('button', { type: 'button', class: `who-btn ${a.cls}`, role: 'radio', 'aria-checked': ideas.author === a.name ? 'true' : 'false',
-      onclick: () => { ideas.author = a.name; store.set(K_AUTHOR, a.name); if (ideas.msg && ideas.msg.err) ideas.msg = null; renderIdeas(); } },
-      el('i', { class: 'who-dot', 'aria-hidden': 'true' }), a.name)));
-  const m = ideas.msg;
-  const msg = m ? el('div', { class: `idea-msg${m.err ? ' err' : m.ok ? ' ok' : ''}`, role: 'status' }, el('span', { text: m.text }),
-    m.url ? el('div', { class: 'idea-actions' },
-      el('button', { class: 'btn small primary', type: 'button', onclick: () => { ideas.draft = ''; ideas.msg = null; loadIdeas(); }, text: 'Ya la he publicado' }),
-      el('a', { class: 'btn small ghost', href: m.url, target: '_blank', rel: 'noopener noreferrer', text: 'Volver a abrir GitHub' })) : null) : null;
-  const form = el('div', { class: 'idea-form' }, who, ta,
-    el('div', { class: 'idea-actions' }, el('button', { class: 'btn primary', type: 'button', onclick: sendIdea, disabled: ideas.sending, text: ideas.sending ? 'Publicando…' : ideas.token ? 'Publicar sugerencia' : 'Enviar sugerencia' })), msg, tokenBox());
+// La lista se redibuja aparte para no tocar lo que se está escribiendo
+function ideaListNodes() {
   const list = el('div', { class: 'idea-lists' });
   if (ideas.list == null) list.append(el('p', { class: 'fine', text: ideas.loading ? 'Cargando sugerencias…' : 'No se pudieron cargar las sugerencias.' }));
   else if (!ideas.list.length) list.append(el('p', { class: 'fine', text: 'Todavía no hay sugerencias.' }));
@@ -149,15 +135,38 @@ function renderIdeas(focus) {
   }
   if (ideas.error) list.append(el('p', { class: 'fine' }, `${ideas.list ? 'Muestro la última lista guardada. ' : ''}No se pudo consultar GitHub (${ideas.error.message || ideas.error}). `,
     el('a', { href: `https://github.com/${REPO}/issues`, target: '_blank', rel: 'noopener noreferrer', text: 'Verlas en GitHub' })));
+  return [el('div', { class: 'idea-head' }, el('h3', { text: 'Lo que lleváis apuntado' }),
+    el('button', { class: 'link-btn', type: 'button', onclick: () => loadIdeas(), disabled: ideas.loading, text: ideas.loading ? 'Cargando…' : 'Actualizar' })), list];
+}
+function renderIdeaList() {
+  const host = $('#ideaListWrap');
+  if (!host) { renderIdeas(); return; }
+  host.replaceChildren(...ideaListNodes());
+  if (typeof updateBadges === 'function') updateBadges();
+}
+function renderIdeas(focus) {
+  const box = $('#ideas'); if (!box) return;
+  const hadFocus = document.activeElement && document.activeElement.id === 'ideaText';
+  const ta = el('textarea', { id: 'ideaText', rows: '4', maxlength: '4000', placeholder: 'Qué cambiarías o añadirías a la app…', 'aria-label': 'Sugerencia', oninput: e => { ideas.draft = e.target.value; } });
+  ta.value = ideas.draft;
+  const who = el('div', { class: 'idea-who', role: 'radiogroup', 'aria-labelledby': 'ideaWho' }, el('span', { id: 'ideaWho', text: '¿Quién escribe?' }),
+    IDEA_AUTHORS.map(a => el('button', { type: 'button', class: `who-btn ${a.cls}`, role: 'radio', 'aria-checked': ideas.author === a.name ? 'true' : 'false',
+      onclick: e => { ideas.author = a.name; store.set(K_AUTHOR, a.name); for (const b of e.currentTarget.parentElement.querySelectorAll('[role=radio]')) b.setAttribute('aria-checked', b === e.currentTarget ? 'true' : 'false'); if (ideas.msg && ideas.msg.err) { ideas.msg = null; const mm = $('#ideaMsg'); if (mm) mm.remove(); } } },
+      el('i', { class: 'who-dot', 'aria-hidden': 'true' }), a.name)));
+  const m = ideas.msg;
+  const msg = m ? el('div', { id: 'ideaMsg', class: `idea-msg${m.err ? ' err' : m.ok ? ' ok' : ''}`, role: 'status' }, el('span', { text: m.text }),
+    m.url ? el('div', { class: 'idea-actions' },
+      el('button', { class: 'btn small primary', type: 'button', onclick: () => { ideas.draft = ''; ideas.msg = null; renderIdeas(); loadIdeas(); }, text: 'Ya la he publicado' }),
+      el('a', { class: 'btn small ghost', href: m.url, target: '_blank', rel: 'noopener noreferrer', text: 'Volver a abrir GitHub' })) : null) : null;
+  const form = el('div', { class: 'idea-form' }, who, ta,
+    el('div', { class: 'idea-actions' }, el('button', { class: 'btn primary', type: 'button', onclick: sendIdea, disabled: ideas.sending, text: ideas.sending ? 'Publicando…' : ideas.token ? 'Publicar sugerencia' : 'Enviar sugerencia' })), msg, tokenBox());
   box.replaceChildren(
     el('h2', { id: 'ideasTitle', text: 'Sugerencias de mejora' }),
     el('p', { class: 'fine', text: ideas.token
       ? 'Para Estefy y David: apuntad aquí lo que mejoraríais de la app. Se publican al momento en GitHub como «Propuesta N» y son visibles para cualquiera.'
       : 'Para Estefy y David: apuntad aquí lo que mejoraríais de la app. Se publican en GitHub como «Propuesta N» y son visibles para cualquiera.' }),
     form,
-    el('div', { class: 'idea-head' }, el('h3', { text: 'Lo que lleváis apuntado' }),
-      el('button', { class: 'link-btn', type: 'button', onclick: () => loadIdeas(), disabled: ideas.loading, text: ideas.loading ? 'Cargando…' : 'Actualizar' })),
-    list);
+    el('div', { id: 'ideaListWrap', class: 'ses-list-wrap' }, ...ideaListNodes()));
   if (hadFocus || focus) { const t = $('#ideaText'); t.focus({ preventScroll: true }); t.setSelectionRange(t.value.length, t.value.length); }
 }
 $('#btnIdeas').addEventListener('click', () => {
