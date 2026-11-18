@@ -77,7 +77,7 @@ function dayWhy(d) {
   const short = freeMin < 90 ? ` Además, solo tienes ${freeMin} min libres con luz.` : '';
   return fs.length ? `${lead}. La bajan ${joinY(fs)}.${short}` : `${lead}: no hay un factor claro; varios están algo por debajo de lo ideal.${short}`;
 }
-const WHY_LEAD = { off: 'Por qué está descartado', check: 'Por qué hay que revisarlo', flat: 'Por qué está plato', danger: 'Por qué está pasado' };
+const WHY_LEAD = { off: 'Por qué está descartado', check: 'Por qué hay que revisarlo', flat: 'Por qué está plato', danger: 'Por qué está heavy' };
 
 /* Detalle del día: motivo y temperaturas */
 const _renderDetail7 = renderDetail;
@@ -114,6 +114,10 @@ renderReadLine = function () {
   _renderReadLine7();
   const box = $('#readLine'); if (!box) return;
   const d = state.days[state.dayIdx], x = d && d.hours.find(h => h.min === state.hour);
+  if (x && x.ok && x.danger) {
+    const over = [x.open > S.maxOpen ? `altura ${f1(x.open)} m > tope ${f1(S.maxOpen)} m` : null, x.en.kj > S.maxEnergy ? `energía ${fk(x.en.kj)} kJ > tope ${fk(S.maxEnergy)} kJ` : null].filter(Boolean);
+    if (over.length) box.append(el('span', { class: 'rl-over', text: `Heavy por ${over.join(' y ')}` }));
+  }
   if (!x || (x.temp == null && x.sst == null)) return;
   box.append(el('span', { class: 'rl-temp', text: [x.temp != null ? `Aire ${degC(x.temp)}` : null, x.sst != null ? `agua ${degC(x.sst)}` : null].filter(Boolean).join(', ') }));
 };

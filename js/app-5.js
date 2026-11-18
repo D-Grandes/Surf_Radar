@@ -54,7 +54,7 @@ function boardFor(x, p) {
 const recParts = r => [`${r.name}, `, el('span', { class: 'nw', text: `${r.len[0]}–${r.len[1]}` }), r.vol ? ', ' : null, r.vol ? el('span', { class: 'nw', text: `${r.vol[0]}–${r.vol[1]} L` }) : null];
 function boardBox(x, title) {
   if (!x || !x.ok) return null;
-  if (x.danger) return el('div', { class: 'board-box' }, el('p', { class: 'board-title', text: title }), el('p', { class: 'fine', text: 'Ninguna: el mar está pasado para nivel medio.' }));
+  if (x.danger) return el('div', { class: 'board-box' }, el('p', { class: 'board-title', text: title }), el('p', { class: 'fine', text: 'Ninguna: mar heavy para nivel medio.' }));
   const recs = Object.keys(SURFERS).map(n => ({ n, r: boardFor(x, SURFERS[n]) })).filter(o => o.r);
   if (!recs.length) return null;
   const same = recs.every(o => o.r.text === recs[0].r.text);
@@ -215,7 +215,7 @@ async function saveSession() {
       `- Valoración: ${f.rating}/5 (${RATING[f.rating - 1]})`,
       `- Tabla usada: ${f.board.trim() || 'sin indicar'}`,
       `- Tabla recomendada por la app: ${recText(recObj)}`,
-      c0 ? `- Condiciones a la entrada: ${f1(c0.boya_m)} m en boya (~${f1(c0.hendaya_m)} m en Hendaya), ${f0(c0.periodo_s)} s, ${fk(c0.energia_kj)} kJ, swell ${c0.swell_dir}, viento ${f0(c0.viento_kn)} kn ${c0.viento_dir} (${c0.viento_tipo})${c0.marea_pct != null ? `, marea ${c0.marea_pct} % ${c0.marea}` : ''}. Nota de la app: ${c0.nota_app == null ? 'pasado' : f1(c0.nota_app)}.` : '- Condiciones: no disponibles para esa hora.',
+      c0 ? `- Condiciones a la entrada: ${f1(c0.boya_m)} m en boya (~${f1(c0.hendaya_m)} m en Hendaya), ${f0(c0.periodo_s)} s, ${fk(c0.energia_kj)} kJ, swell ${c0.swell_dir}, viento ${f0(c0.viento_kn)} kn ${c0.viento_dir} (${c0.viento_tipo})${c0.marea_pct != null ? `, marea ${c0.marea_pct} % ${c0.marea}` : ''}. Nota de la app: ${c0.nota_app == null ? 'heavy' : f1(c0.nota_app)}.` : '- Condiciones: no disponibles para esa hora.',
       f.note.trim() ? `- Comentario: ${f.note.trim()}` : null,
       old ? `- Editada desde la app el ${dayFull(now.date).toLowerCase()} a las ${hm(now.min)}.` : null, '',
       FENCE + 'json', JSON.stringify(rec2, null, 2), FENCE

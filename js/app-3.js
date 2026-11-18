@@ -44,11 +44,11 @@ function renderDetail() {
   const best = d.best;
   box.replaceChildren(...[
     el('div', { class: 'det-head' }, el('h2', { text: dayFull(d.date) }),
-      el('div', { class: 'chips' }, statusChip(d), d.dangerSome && d.status !== 'danger' ? el('span', { class: 'st danger', text: '🚫 Pasado a ratos' }) : null, d.grey ? el('span', { class: 'st gz', text: '⚠ Posible baño' }) : null)),
+      el('div', { class: 'chips' }, statusChip(d), d.dangerSome && d.status !== 'danger' ? el('span', { class: 'st danger', text: '🚫 Heavy a ratos' }) : null, d.grey ? el('span', { class: 'st gz', text: '⚠ Posible baño' }) : null)),
     el('p', { class: 'det-light' }, `Luz útil ${hm(d.dawn)}–${hm(d.dusk)} `, el('small', { text: `(amanecer ${hm(d.rise)}, atardecer ${hm(d.set)}, más ${S.twilight} min de crepúsculo)` })),
     tideLine(d),
     best ? el('p', { class: 'det-best' }, 'Mejor franja: ', el('b', { text: `${hm(best.bs)}–${hm(best.be)}` }), ` con nota ${f1(best.peak)} en ${SECTORS[best.peakHour.sector.key].name}.`) : null,
-    d.dangerSome ? el('p', { class: 'danger-note' }, el('b', { text: '🚫 PASADO / PELIGROSO (Nivel Medio)' }), ` ${d.dangerSpan[0] === d.dangerSpan[1] ? `a las ${hm(d.dangerSpan[0])}` : `de ${hm(d.dangerSpan[0])} a ${hm(d.dangerSpan[1])}`}: exceso de tamaño o de corriente. Esas horas no se recomiendan.`) : null,
+    d.dangerSome ? el('p', { class: 'danger-note' }, el('b', { text: '🚫 HEAVY (Nivel Medio)' }), ` ${d.dangerSpan[0] === d.dangerSpan[1] ? `a las ${hm(d.dangerSpan[0])}` : `de ${hm(d.dangerSpan[0])} a ${hm(d.dangerSpan[1])}`}: exceso de tamaño o de corriente. Esas horas no se recomiendan.`) : null,
     d.grey ? greyBanner(d) : null,
     el('section', { class: 'panel', id: 'hourPanel' },
       el('div', { class: 'panel-head' }, el('h3', { class: 'block-title', text: 'Hora a hora, de 06:00 a 22:00' }), el('span', { class: 'fine', text: state.vacation ? 'Modo Vacaciones: todas las horas con luz' : 'Horario laboral' })),
@@ -87,7 +87,7 @@ function renderReadLine() {
   const b = bandAt(d, x.min);
   box.replaceChildren(...[
     el('b', { text: hm(x.min) }), el('span', { class: `lt ${b.cls}`, text: b.label }), scoreBadge(x),
-    x.danger ? el('span', { class: 'flag bad', text: '🚫 PASADO / PELIGROSO (Nivel Medio)' }) : x.flat ? el('span', { class: 'flag flat', text: 'Plato / Solo tablón grande' }) : null,
+    x.danger ? el('span', { class: 'flag bad', text: '🚫 HEAVY (Nivel Medio)' }) : x.flat ? el('span', { class: 'flag flat', text: 'Plato / Solo tablón grande' }) : null,
     el('span', { text: `Boya ${f1(x.open)} m → Hendaya ~${f1(x.shore)} m` }),
     el('span', { text: `${f0(x.per)} s, ${fk(x.en.kj)} kJ` }),
     el('span', {}, arrowEl(x.dir, 'sw'), ` ${compass(x.dir)}`),
@@ -158,7 +158,7 @@ function chartSVG(d, o) {
     const sx = okH.find(x => x.min === state.hour);
     if (sx && !mini) s += `<circle class="dot buoy-dot" cx="${X(sx.min).toFixed(1)}" cy="${YA(sx.open).toFixed(1)}" r="4"/>`;
   }
-  // Nota por hora (rojo con «!» si está PASADO)
+  // Nota por hora (rojo con «!» si está HEAVY)
   if (!mini) {
     s += `<text class="lbl" x="${padL - 6}" y="${bTop + bH / 2}" dy=".32em" text-anchor="end">Nota</text>`;
     for (const x of okH) {
@@ -278,8 +278,8 @@ function buildSettings() {
     sw.append(el('div', { class: 'set-day' }, el('p', { class: 'set-dayname', text: cap(DOW_L[dow]) }), list));
   }
   const ss = el('section', { class: 'set-sec' }, el('h3', { text: 'Tope de seguridad (nivel medio)' }),
-    rangeRow('Altura máxima en boya', 'rMaxH', 2, 6, .1, draft.maxOpen, v => `${f1(v)} m`, v => { draft.maxOpen = v; }, 'Por encima, la hora se marca «🚫 PASADO / PELIGROSO (Nivel Medio)» y nunca se recomienda.'),
-    rangeRow('Energía máxima', 'rMaxE', 1000, 10000, 100, draft.maxEnergy, v => `${fk(v)} kJ`, v => { draft.maxEnergy = v; }, 'Igual que la altura: por encima hay exceso de corriente y de tamaño.'));
+    rangeRow('Altura máxima en boya', 'rMaxH', 2, 6, .1, draft.maxOpen, v => `${f1(v)} m`, v => { draft.maxOpen = v; }, 'Por encima, la hora se marca «🚫 HEAVY (Nivel Medio)» y nunca se recomienda.'),
+    rangeRow('Energía máxima', 'rMaxE', 1000, 10000, 100, draft.maxEnergy, v => `${fk(v)} kJ`, v => { draft.maxEnergy = v; }, 'Por encima hay exceso de corriente y de tamaño. Basta con superar uno de los dos topes (altura o energía) para que la hora salga como HEAVY.'));
   const sc = el('section', { class: 'set-sec' }, el('h3', { text: 'Cálculo' }),
     rangeRow('Tamaño en Hendaya', 'rFactor', 30, 70, 5, Math.round(draft.shoreFactor * 100), v => `${v} %`, v => { draft.shoreFactor = v / 100; }, 'Regla de la mitad: porcentaje del mar abierto que llega a la orilla por la protección de Cabo Higuer.'),
     rangeRow('Margen de crepúsculo', 'rTw', 0, 45, 5, draft.twilight, v => `${v} min`, v => { draft.twilight = v; }, 'Minutos de luz útil antes del amanecer y después del atardecer.'),

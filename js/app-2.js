@@ -270,12 +270,12 @@ function sectorIcon(key) {
 const windChip = (x, short) => el('span', { class: `wl ${x.windI.tone}`, text: short ? x.windI.short : x.windI.label });
 function scoreBadge(x) {
   if (!x.ok) return '–';
-  if (x.danger) return el('span', { class: 'sc bad', title: 'PASADO / PELIGROSO (Nivel Medio)', 'aria-label': 'Pasado, peligroso para nivel medio', text: '🚫' });
+  if (x.danger) return el('span', { class: 'sc bad', title: 'HEAVY (Nivel Medio)', 'aria-label': 'Heavy, peligroso para nivel medio', text: '🚫' });
   return el('span', { class: `sc ${scoreClass(x.score)}`, text: f1(x.score) });
 }
 function flagFor(x, grey) {
   if (!x.ok) return null;
-  if (x.danger) return el('span', { class: 'flag bad', text: '🚫 PASADO / PELIGROSO (Nivel Medio)' });
+  if (x.danger) return el('span', { class: 'flag bad', text: '🚫 HEAVY (Nivel Medio)' });
   if (grey) return el('span', { class: 'flag gz', text: '⚠️ POSIBLE BAÑO / REVISAR MANUALMENTE' });
   if (x.flat) return el('span', { class: 'flag flat', text: 'Plato / Solo tablón grande' });
   return null;
@@ -341,7 +341,7 @@ function renderHero() {
   const dangers = state.days.filter(d => d.dangerSome);
   if (dangers.length) {
     kids.push(el('div', { class: 'danger-note' },
-      el('b', { text: '🚫 PASADO / PELIGROSO (Nivel Medio)' }),
+      el('b', { text: '🚫 HEAVY (Nivel Medio)' }),
       el('ul', {}, dangers.map(d => el('li', {},
         el('button', { class: 'link', type: 'button', onclick: () => selectDay(state.days.indexOf(d), d.dangerSpan[0], 'detail') },
           `${dayShortRel(d.date, now)}: ${d.dangerSpan[0] === d.dangerSpan[1] ? `a las ${hm(d.dangerSpan[0])}` : `de ${hm(d.dangerSpan[0])} a ${hm(d.dangerSpan[1])}`}`))))));
@@ -351,7 +351,7 @@ function renderHero() {
 }
 const STATUS = {
   good: ['✓', 'Bueno', 'Bueno'], check: ['!', 'Revisar', 'Revisar'], off: ['✕', 'Descartado', 'Descartado'],
-  flat: ['≈', 'Plato / Solo tablón grande', 'Plato'], danger: ['🚫', 'PASADO / PELIGROSO (Nivel Medio)', 'PASADO']
+  flat: ['≈', 'Plato / Solo tablón grande', 'Plato'], danger: ['🚫', 'HEAVY (Nivel Medio)', 'HEAVY']
 };
 const statusChip = (d, short) => el('span', { class: `st ${d.status}`, title: STATUS[d.status][1] }, el('span', { 'aria-hidden': 'true', text: STATUS[d.status][0] }), short ? STATUS[d.status][2] : STATUS[d.status][1]);
 function renderTabs() {
@@ -361,7 +361,7 @@ function renderTabs() {
     return el('button', { class: `day-tab${d.status === 'danger' ? ' is-danger' : ''}`, type: 'button', role: 'tab', id: `tab-${i}`, 'aria-selected': i === state.dayIdx ? 'true' : 'false', 'aria-controls': 'detail', onclick: () => selectDay(i, null, 'auto') },
       el('span', { class: 'dt-day', text: dayShortRel(d.date, now) }),
       el('span', { class: 'dt-chips' }, statusChip(d, true),
-        d.dangerSome && d.status !== 'danger' ? el('span', { class: 'st danger', text: '🚫 Pasado a ratos' }) : null,
+        d.dangerSome && d.status !== 'danger' ? el('span', { class: 'st danger', text: '🚫 Heavy a ratos' }) : null,
         d.grey ? el('span', { class: 'st gz', text: '⚠ Posible baño' }) : null),
       el('span', { class: 'dt-light', text: `Luz ${hm(d.rise)}–${hm(d.set)}` }),
       x ? el('span', { class: 'dt-size' }, el('b', { text: `~${f1(x.shore)} m` }), ' Hendaya') : el('span', { class: 'dt-light', text: 'Sin datos de oleaje' }),
@@ -385,7 +385,7 @@ function tideLine(d) {
 function franjaList(d, now) {
   const box = el('div', { class: 'franjas' }, el('h3', { class: 'block-title', text: state.vacation ? 'Mejores franjas con luz (Modo Vacaciones)' : 'Tus mejores franjas con luz' }));
   if (!d.franjas.length) {
-    const msg = d.status === 'danger' ? 'Ninguna franja con luz es asequible para nivel medio: mar pasado.'
+    const msg = d.status === 'danger' ? 'Ninguna franja con luz es asequible para nivel medio: mar heavy.'
       : d.date === now.date ? 'Hoy ya no quedan huecos con luz en tu horario.' : 'Este día no hay huecos con luz en tu horario.';
     box.append(el('p', { class: 'muted', text: msg }));
     return box;

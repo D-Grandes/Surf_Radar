@@ -9,3 +9,4 @@
 .hh .c-temp .sea{color:var(--sea)}
 @media (min-width:761px){.hh .c-temp .k{display:none}}
 @media (max-width:760px){.hh .c-temp{order:10}}
+.readline .rl-over{color:var(--bad);font-weight:650}
