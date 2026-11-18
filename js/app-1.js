@@ -328,10 +328,11 @@ const tideShort = r => r < .15 ? 'BM' : r < .4 ? 'M-B' : r < .6 ? 'M' : r < .85 
    ========================================================= */
 // Dirección de procedencia del swell → factor (Cabo Higuer tapa W y SW)
 const DIR_T = [[0, 1], [15, 1], [45, .6], [90, .12], [180, .05], [200, .05], [235, .18], [260, .42], [275, .68], [290, 1], [360, 1]];
-// Nivel intermedio: altura en boya óptima de 1,5 a 2,5 m; hasta ~3 m solo con período moderado
-const openTable = per => [[.5, .03], [1, .35], [1.25, .7], [1.5, .95], [2, 1], [2.5, 1], [3, interp(per, [[12, .8], [14, .55]])], [3.5, .3], [4.5, .1]];
-// Energía (kJ): óptima de 300 a 1.000 kJ
-const EN_T = [[0, .2], [100, .45], [300, .9], [450, 1], [1000, 1], [1250, .8], [1500, .55], [2000, .3]];
+// Nivel intermedio: altura en boya óptima de 1,5 a 2,5 m; hasta ~3 m solo con período moderado.
+// Si en Ajustes se sube el tope de altura por encima de 3,5 m, el tramo óptimo se alarga lo mismo
+const openTable = per => { const s = Math.max(0, S.maxOpen - 3.5); return [[.5, .03], [1, .35], [1.25, .7], [1.5, .95], [2, 1], [2.5 + s, 1], [3 + s, interp(per, [[12, .8], [14, .55]])], [3.5 + s, .3], [4.5 + s, .1]]; };
+// Energía (kJ): óptima de 300 a 1.000 kJ; igual que la altura, se alarga si el tope pasa de 1.500 kJ
+const enTable = () => { const s = Math.max(0, S.maxEnergy - 1500); return [[0, .2], [100, .45], [300, .9], [450, 1], [1000 + s, 1], [1250 + s, .8], [1500 + s, .55], [2000 + s, .3]]; };
 // Período (s) → calidad del oleaje
 const PER_T = [[5, .3], [8, .5], [9, .6], [10, .78], [12, .9], [14, 1], [25, 1]];
 
@@ -352,7 +353,7 @@ function perInfo(p) {
 // Energía de cada ola por metro de frente: ρ·g²·H²·T² / (32π) ≈ 0,98·H²·T² kJ (escala comparable a Surf-Forecast)
 function energyInfo(H, T) {
   const kj = 0.98 * H * H * T * T;
-  const label = kj > S.maxEnergy ? 'Peligrosa para nivel medio' : kj > 1000 ? 'Alta' : kj >= 300 ? 'Óptima para nivel medio' : kj >= 100 ? 'Baja, de tablón' : 'Muy baja';
+  const label = kj > S.maxEnergy ? 'Peligrosa para nivel medio' : kj > Math.max(1000, S.maxEnergy - 500) ? 'Alta' : kj >= 300 ? 'Óptima para nivel medio' : kj >= 100 ? 'Baja, de tablón' : 'Muy baja';
   return { kj, label };
 }
 const fk = v => (v == null || !isFinite(v)) ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // 1.500
@@ -436,7 +437,7 @@ function analyze(h) {
   x.danger = x.open > S.maxOpen || x.en.kj > S.maxEnergy;
   x.flat = !x.danger && (x.open < 1 || x.per < 8);
   if (x.danger) { x.score = 1; x.sector = null; return x; }
-  const sc = 10 * interp(x.open, openTable(x.per)) * Math.pow(interp(x.en.kj, EN_T), .6) * Math.pow(x.perI.f, .4)
+  const sc = 10 * interp(x.open, openTable(x.per)) * Math.pow(interp(x.en.kj, enTable()), .6) * Math.pow(x.perI.f, .4)
     * Math.pow(x.dirI.f, .9) * Math.pow(x.windI.f, .9) * Math.pow(tideFactor(x.tide), .5);
   x.score = clamp(sc, 1, 10);
   if (x.flat) x.score = Math.min(x.score, 3); // plato: nunca cuenta como bueno

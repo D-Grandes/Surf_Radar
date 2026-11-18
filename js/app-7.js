@@ -45,8 +45,8 @@ function dayTemps(d) {
 function factorsOf(x) {
   const out = [];
   const add = (f, text) => { if (f < .72) out.push({ f, text }); };
-  add(interp(x.open, openTable(x.per)), x.open < 1.6 ? `poco tamaño (${f1(x.open)} m en boya)` : `demasiado tamaño para nivel medio (${f1(x.open)} m en boya)`);
-  add(interp(x.en.kj, EN_T), x.en.kj < 300 ? `poca energía (${fk(x.en.kj)} kJ)` : `mucha energía (${fk(x.en.kj)} kJ)`);
+  add(interp(x.open, openTable(x.per)), x.open < 1.6 ? `poco tamaño (${f1(x.open)} m en boya)` : `demasiado tamaño para tus topes (${f1(x.open)} m en boya)`);
+  add(interp(x.en.kj, enTable()), x.en.kj < 300 ? `poca energía (${fk(x.en.kj)} kJ)` : `mucha energía (${fk(x.en.kj)} kJ)`);
   add(x.perI.f, `período corto (${f0(x.per)} s, mar de viento)`);
   add(x.dirI.f, `swell del ${compass(x.dir)} (${x.dirI.label.toLowerCase()})`);
   add(x.windI.f, `viento ${x.windI.label} de ${f0(x.wind)} kn`);
@@ -127,5 +127,12 @@ fetchJSON(SST_URL).then(sst => {
   lastSST = { hourly: { time: sst.hourly.time, sea_surface_temperature: sst.hourly.sea_surface_temperature } };
   if (state.raw && state.source !== 'demo') safeRender(true);
 }).catch(() => null);
+/* Ajustes: aviso de que los topes también mueven la nota */
+const _buildSettings7 = buildSettings;
+buildSettings = function () {
+  _buildSettings7();
+  const sec = $('#rMaxE') && $('#rMaxE').closest('.set-sec');
+  if (sec) sec.append(el('p', { class: 'fine', text: 'Si subes un tope por encima del valor por defecto (3,5 m o 1.500 kJ), la nota también deja de penalizar ese tamaño o esa energía: el tramo óptimo se alarga lo mismo que subas el tope.' }));
+};
 if (state.raw) safeRender(true);
 Object.assign(window.HSR, { dayWhy, dayTemps, factorsOf });
