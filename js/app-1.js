@@ -143,7 +143,7 @@ function normalizeSettings(s) {
   out.minSession = clamp(Math.round(out.minSession), 15, 180);
   out.tideOffset = clamp(Math.round(out.tideOffset), -240, 240);
   out.maxOpen = clamp(Math.round(out.maxOpen * 10) / 10, 2, 6);
-  out.maxEnergy = clamp(Math.round(out.maxEnergy / 50) * 50, 1500, 2000);
+  out.maxEnergy = clamp(Math.round(out.maxEnergy / 100) * 100, 1000, 10000);
   return out;
 }
 let S = normalizeSettings(store.get(K_SET, null));
