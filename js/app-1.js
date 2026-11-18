@@ -142,7 +142,7 @@ function normalizeSettings(s) {
   out.goodScore = clamp(out.goodScore, 3, 9.5);
   out.minSession = clamp(Math.round(out.minSession), 15, 180);
   out.tideOffset = clamp(Math.round(out.tideOffset), -240, 240);
-  out.maxOpen = clamp(Math.round(out.maxOpen * 10) / 10, 3.5, 4);
+  out.maxOpen = clamp(Math.round(out.maxOpen * 10) / 10, 2, 6);
   out.maxEnergy = clamp(Math.round(out.maxEnergy / 50) * 50, 1500, 2000);
   return out;
 }

@@ -278,7 +278,7 @@ function buildSettings() {
     sw.append(el('div', { class: 'set-day' }, el('p', { class: 'set-dayname', text: cap(DOW_L[dow]) }), list));
   }
   const ss = el('section', { class: 'set-sec' }, el('h3', { text: 'Tope de seguridad (nivel medio)' }),
-    rangeRow('Altura máxima en boya', 'rMaxH', 3.5, 4, .1, draft.maxOpen, v => `${f1(v)} m`, v => { draft.maxOpen = v; }, 'Por encima, la hora se marca «🚫 PASADO / PELIGROSO (Nivel Medio)» y nunca se recomienda.'),
+    rangeRow('Altura máxima en boya', 'rMaxH', 2, 6, .1, draft.maxOpen, v => `${f1(v)} m`, v => { draft.maxOpen = v; }, 'Por encima, la hora se marca «🚫 PASADO / PELIGROSO (Nivel Medio)» y nunca se recomienda.'),
     rangeRow('Energía máxima', 'rMaxE', 1500, 2000, 50, draft.maxEnergy, v => `${fk(v)} kJ`, v => { draft.maxEnergy = v; }, 'Igual que la altura: por encima hay exceso de corriente y de tamaño.'));
   const sc = el('section', { class: 'set-sec' }, el('h3', { text: 'Cálculo' }),
     rangeRow('Tamaño en Hendaya', 'rFactor', 30, 70, 5, Math.round(draft.shoreFactor * 100), v => `${v} %`, v => { draft.shoreFactor = v / 100; }, 'Regla de la mitad: porcentaje del mar abierto que llega a la orilla por la protección de Cabo Higuer.'),
