@@ -1,0 +1,11 @@
+/* Temperatura y motivo del estado del día */
+.det-why{font-size:14px;line-height:1.45;color:var(--ink-2);background:var(--surface-2);border-left:3px solid var(--line);border-radius:0 8px 8px 0;padding:8px 11px}
+.det-why b{color:var(--ink);font-weight:720}
+.det-why.st-off{border-left-color:var(--muted)}
+.det-why.st-check{border-left-color:var(--warn)}
+.det-why.st-danger{border-left-color:var(--bad)}
+.det-temp{font-size:14.5px}
+.hh .c-temp{white-space:nowrap}
+.hh .c-temp .sea{color:var(--sea)}
+@media (min-width:761px){.hh .c-temp .k{display:none}}
+@media (max-width:760px){.hh .c-temp{order:10}}
